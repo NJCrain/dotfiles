@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# 1. Search for text in files using Ripgrep
+# 2. Interactively restart Ripgrep with reload action
+# 3. Open the file in Vim
+RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+INITIAL_QUERY="${*:-}"
+fzf --ansi --disabled --layout=reverse --query "$INITIAL_QUERY" \
+    --bind "start:reload:$RG_PREFIX {q}" \
+    --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+    --delimiter : \
+    --preview 'line={2}; bat --color=always {1} --highlight-line $line --line-range $((line > 15 ? line - 15 : 0)):+30' \
+    --bind "enter:become(echo {1} {2} {3})"

@@ -1,0 +1,2 @@
+#! /usr/bin/env sh
+echo $1 | iconv -c -s -f utf-8 -t ascii | sed -e 's/^[[:space:]]*//g' | xargs bat --color=always

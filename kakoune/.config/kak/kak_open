@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+echo "evaluate-commands -client ${KAK_CLIENT} edit $1 $2 $3" | kak -p ${KAK_SESSION}

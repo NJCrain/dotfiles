@@ -1,0 +1,78 @@
+
+eval %sh{kak-lsp}
+lsp-enable
+
+eval %sh{ kak-tree-sitter -dks -vvvv --init $kak_session }
+
+colorscheme night-owl-ts
+
+#set global lsp_debug true
+
+add-highlighter global/ number-lines -hlcursor
+set-option global tabstop 2
+set-option global indentwidth 2
+
+#define-command -override tree-sitter-user-after-highlighter %{
+ # add-highlighter global/ number-lines -hlcursor
+#}
+
+
+hook global BufSetOption filetype=(?:javascript|typescript) %{
+    set-option buffer lsp_servers %{
+        [typescript-language-server]
+        root_globs = ["package.json", "tsconfig.json", "jsconfig.json", ".git", ".hg"]
+        args = ["--stdio"]
+        settings_section = "_"
+    }
+    set-option -add buffer lsp_servers %{
+        [tailwindcss-language-server]
+        root_globs = ["tailwind.*"]
+        args = ["--stdio"]
+        [tailwindcss-language-server.settings.tailwindCSS]
+        editor = {}
+        [vscode-eslint-language-server]
+        root_globs = [".eslintrc.js"]
+        args = ["--stdio"]
+        workaround_eslint = true
+        [vscode-eslint-language-server.settings]
+        nodePath = ""
+        packageManager = "yarn"
+        codeActionsOnSave = { mode = "all", "source.fixAll.eslint" = true }
+        format = { enable = true }
+        quiet = false
+        rulesCustomizations = []
+        run = "onType"
+        validate = "on"
+        experimental = {}
+        problems = { shortenToSingleLine = false }
+        codeAction.disableRuleComment = { enable = true, location = "separateLine" }
+        codeAction.showDocumentation = { enable = false }
+    }
+}
+
+define-command tmux-terminal-popup -params 1.. -docstring '
+tmux-terminal-popup <program> [<arguments>]: create a new terminal as a tmux pane
+The pane will open in a popup
+The program passed as argument will be executed in the new terminal' \
+%{
+    tmux-terminal-impl 'display-popup -E -w 75% -h 80% -d #{pane_current_path}' %arg{@}
+}
+complete-command tmux-terminal-popup shell
+
+declare-option str kak_open "%val{config}/kak_open"
+define-command nnn -docstring "open nnn" -params .. %{
+    tmux-terminal-popup zsh -c "KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %opt{kak_open} $(nnn -p - %arg{@})"
+}
+complete-command nnn file
+
+define-command fzf -docstring "open fzf" -params .. %{
+    tmux-terminal-popup zsh -c "KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %opt{kak_open} $(fzf --layout reverse | iconv -c -s -f utf-8 -t ascii | sed -e 's/^[[:space:]]//g')"
+}
+
+define-command search-all -docstring "search pattern across all files in current directory with ripgrep" -params .. %{
+    tmux-terminal-popup zsh -c "KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %opt{kak_open} $(%val{config}/search-all)"
+ }
+
+map global -docstring "search all files in workspace" user f :search-all<ret>
+map global -docstring "open file picker" user p :fzf<ret>
+map global -docstring "open file browser" user b :nnn<ret>
