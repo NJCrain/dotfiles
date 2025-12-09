@@ -2,19 +2,15 @@
 eval %sh{kak-lsp}
 lsp-enable
 
-eval %sh{ kak-tree-sitter -dks -vvvv --init $kak_session }
+eval %sh{ kak-tree-sitter -dks --init $kak_session }
 
 colorscheme night-owl-ts
-
-#set global lsp_debug true
-
-add-highlighter global/ number-lines -hlcursor
 set-option global tabstop 2
 set-option global indentwidth 2
 
-#define-command -override tree-sitter-user-after-highlighter %{
- # add-highlighter global/ number-lines -hlcursor
-#}
+define-command -override tree-sitter-user-after-highlighter %{
+ add-highlighter global/ number-lines -hlcursor
+}
 
 
 hook global BufSetOption filetype=(?:javascript|typescript) %{
@@ -66,7 +62,7 @@ define-command nnn -docstring "open nnn" -params .. %{
 complete-command nnn file
 
 define-command fzf -docstring "open fzf" -params .. %{
-    tmux-terminal-popup zsh -c "KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %opt{kak_open} $(fzf --layout reverse | iconv -c -s -f utf-8 -t ascii | sed -e 's/^[[:space:]]//g')"
+    tmux-terminal-popup zsh -c "KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %opt{kak_open} $(fzf --layout reverse --preview 'fzf-preview {}'| iconv -c -s -f utf-8 -t ascii | sed -e 's/^[[:space:]]//g')"
 }
 
 define-command search-all -docstring "search pattern across all files in current directory with ripgrep" -params .. %{
@@ -76,3 +72,4 @@ define-command search-all -docstring "search pattern across all files in current
 map global -docstring "search all files in workspace" user f :search-all<ret>
 map global -docstring "open file picker" user p :fzf<ret>
 map global -docstring "open file browser" user b :nnn<ret>
+map global normal <c-h> ":enter-user-mode lsp<ret>"
