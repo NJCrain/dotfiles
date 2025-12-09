@@ -28,6 +28,7 @@
     nerd-fonts.fira-code
     (writeShellScriptBin "fzf-preview" (builtins.readFile ./scripts/fzf-preview))
     wireguard-tools
+    auto-ssh
   ];
 
   programs.fd = {
@@ -81,6 +82,7 @@
     mouse = true;
     terminal = "tmux-256color";
     shell = "${pkgs.zsh}/bin/zsh";
+    escapeTime = 10;
   };
   
   programs.starship = {

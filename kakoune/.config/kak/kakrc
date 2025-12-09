@@ -69,6 +69,10 @@ define-command search-all -docstring "search pattern across all files in current
     tmux-terminal-popup zsh -c "KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %opt{kak_open} $(%val{config}/search-all)"
  }
 
+# TODO: Why does %val{buflist} not give anything in the tmux popup
+define-command switch-buffer -docstring "open a list of currently open buffers and switch to it" %{
+	tmux-terminal-popup zsh -c  "echo ""evaluate-commands -client %val{client} b $(echo $kak_buflist | tr ' ' '\n' | fzf --layout reverse --preview 'fzf-preview {}')"" | kak -p %val{session}"
+}
 map global -docstring "search all files in workspace" user f :search-all<ret>
 map global -docstring "open file picker" user p :fzf<ret>
 map global -docstring "open file browser" user b :nnn<ret>

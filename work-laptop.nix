@@ -25,7 +25,7 @@
     (pkgs.callPackage (import ./custom-packages/kak-tree-sitter/kak-tree-sitter.nix) {})
     gcc
     nodejs-slim
-    vscode-langservers-extracted
+    (pkgs.callPackage (import ./custom-packages/vscode-lang-servers-extracted/vscode-lang-servers-extracted.nix) {})
     typescript-language-server
     tailwindcss-language-server
     nerd-fonts.fira-code
@@ -40,7 +40,7 @@
     raycast
     wireguard-tools
     zoom-us
-    mosh
+    autossh
     tree
     fswatch
   ];
@@ -104,6 +104,7 @@
     mouse = true;
     terminal = "tmux-256color";
     shell = "${pkgs.zsh}/bin/zsh";
+    escapeTime = 10;
   };
 
   programs.starship = {
