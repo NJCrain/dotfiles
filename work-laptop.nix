@@ -188,6 +188,44 @@
     enableZshIntegration = true;
   };
 
+  programs.codex = {
+		enable = true;
+		custom-instructions = ''
+      - Before running any yarn, node or hasura cli command for the "archive" project, run the command as "direnv exec . ''\${COMMAND}" to ensure the proper environment values are available to the shell
+		'';
+		settings = {
+			model = "gpt-5.3-codex";
+			personality = "pragmatic";
+			model_reasoning_effort = "medium";
+			projects = {
+				"/Users/nick/archive" = {
+					trust_level = "trusted";
+				};
+			};
+			mcp_servers = {
+				a_playwright-dev = {
+  				command = "direnv";
+					args = ["exec" "." "yarn" "playwright:mcp-server"];
+					cwd = "/Users/nick/archive/web-app/";
+					enabled = true;
+				};
+				a_playwright-staging = {
+  				command = "direnv";
+					args = ["exec" "." "yarn" "playwright:mcp-server"];
+					cwd = "/Users/nick/archive/web-app/";
+					env = {
+						PLAYWRIGHT_ENV = "staging";
+					};
+					enabled = true;
+				};
+				local_figma = {
+					url = "http://127.0.0.1:3845/mcp";
+					enabled = true;
+				};
+			};
+		};
+  };
+
   programs.claude-code = {
 		enable = true;
   };
