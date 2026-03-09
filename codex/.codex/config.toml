@@ -1,0 +1,25 @@
+model = "gpt-5.3-codex"
+model_reasoning_effort = "medium"
+personality = "pragmatic"
+
+[mcp_servers.a_playwright-dev]
+args = ["exec", ".", "yarn", "playwright:mcp-server"]
+command = "direnv"
+cwd = "/Users/nick/archive/web-app/"
+enabled = true
+
+[mcp_servers.a_playwright-staging]
+args = ["exec", ".", "yarn", "playwright:mcp-server"]
+command = "direnv"
+cwd = "/Users/nick/archive/web-app/"
+enabled = true
+
+[mcp_servers.a_playwright-staging.env]
+PLAYWRIGHT_ENV = "staging"
+
+[mcp_servers.local_figma]
+enabled = true
+url = "http://127.0.0.1:3845/mcp"
+
+[projects."/Users/nick/archive"]
+trust_level = "trusted"

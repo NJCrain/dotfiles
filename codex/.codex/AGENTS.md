@@ -1,0 +1,2 @@
+      - Before running any yarn, node or hasura cli command for the "archive" project, run the command as "direnv exec . ${COMMAND}" to ensure the proper environment values are available to the shell
+		
