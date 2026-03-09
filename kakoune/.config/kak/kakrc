@@ -12,6 +12,15 @@ define-command -override tree-sitter-user-after-highlighter %{
  add-highlighter global/ number-lines -hlcursor
 }
 
+hook global WinSetOption filetype=(?:javascript|typescript) %{
+	set-option window formatcmd "npx prettier --stdin-filepath %val{buffile} | eslint_d --fix-to-stdout --stdin --stdin-filename %val{buffile}"
+
+	hook buffer BufWritePre .* %{ evaluate-commands %{
+  	format
+  	# lsp-execute-command-sync eslint.applyAllFixes "[{""uri"": ""file://%val{buffile}"", ""version"": %val{timestamp}}]"
+	}}
+}
+
 
 hook global BufSetOption filetype=(?:javascript|typescript) %{
     set-option buffer lsp_servers %{
@@ -19,20 +28,27 @@ hook global BufSetOption filetype=(?:javascript|typescript) %{
         root_globs = ["package.json", "tsconfig.json", "jsconfig.json", ".git", ".hg"]
         args = ["--stdio"]
         settings_section = "_"
+        [typescript-language-server.settings._]
+        importModuleSpecifierPreference = "relative"
+        importModuleSpecifierEnding = "minimal"
+        
     }
+
     set-option -add buffer lsp_servers %{
         [tailwindcss-language-server]
         root_globs = ["tailwind.*"]
         args = ["--stdio"]
         [tailwindcss-language-server.settings.tailwindCSS]
         editor = {}
+    }
+
+    set-option -add buffer lsp_servers %{
         [vscode-eslint-language-server]
-        root_globs = [".eslintrc.js"]
+        root_globs = [".eslintrc.js", ".eslintrc.json"]
         args = ["--stdio"]
         workaround_eslint = true
         [vscode-eslint-language-server.settings]
         nodePath = ""
-        packageManager = "yarn"
         codeActionsOnSave = { mode = "all", "source.fixAll.eslint" = true }
         format = { enable = true }
         quiet = false
@@ -51,29 +67,46 @@ tmux-terminal-popup <program> [<arguments>]: create a new terminal as a tmux pan
 The pane will open in a popup
 The program passed as argument will be executed in the new terminal' \
 %{
-    tmux-terminal-impl 'display-popup -E -w 75% -h 80% -d #{pane_current_path}' %arg{@}
+    tmux-terminal-impl 'display-popup -E -w 75% -h 80% -d #{pane_current_path}' zsh -c "KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %arg{@}"
 }
 complete-command tmux-terminal-popup shell
 
 declare-option str kak_open "%val{config}/kak_open"
 define-command nnn -docstring "open nnn" -params .. %{
-    tmux-terminal-popup zsh -c "KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %opt{kak_open} $(nnn -p - %arg{@})"
+    tmux-terminal-popup "%opt{kak_open} $(nnn -p - %val{buffile})"
 }
 complete-command nnn file
 
 define-command fzf -docstring "open fzf" -params .. %{
-    tmux-terminal-popup zsh -c "KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %opt{kak_open} $(fzf --layout reverse --preview 'fzf-preview {}'| iconv -c -s -f utf-8 -t ascii | sed -e 's/^[[:space:]]//g')"
+    tmux-terminal-popup "%opt{kak_open} $(fzf --layout reverse --preview 'fzf-preview {}'| iconv -c -s -f utf-8 -t ascii | sed -e 's/^[[:space:]]//g')"
 }
 
 define-command search-all -docstring "search pattern across all files in current directory with ripgrep" -params .. %{
-    tmux-terminal-popup zsh -c "KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %opt{kak_open} $(%val{config}/search-all)"
+    tmux-terminal-popup "%opt{kak_open} $(%val{config}/search-all)"
  }
 
 # TODO: Why does %val{buflist} not give anything in the tmux popup
 define-command switch-buffer -docstring "open a list of currently open buffers and switch to it" %{
-	tmux-terminal-popup zsh -c  "echo ""evaluate-commands -client %val{client} b $(echo $kak_buflist | tr ' ' '\n' | fzf --layout reverse --preview 'fzf-preview {}')"" | kak -p %val{session}"
+	tmux-terminal-popup  "echo ""evaluate-commands -client %val{client} b $(echo $kak_buflist | tr ' ' '\n' | fzf --layout reverse --preview 'fzf-preview {}')"" | kak -p %val{session}"
 }
+
+define-command copy-selection-to-clipboard -docstring "Copies the current selection to the clipboard" %{ nop %sh{
+  case $(uname) in
+    Linux)
+        wl-copy -n "$kak_selection" > /dev/null 2>&1 & ;; 
+    Darwin)
+        printf "%s" "$kak_selection" | pbcopy ;;
+    esac
+}}
+
+define-command version-control -docstring "Open version control system in a popup" %{
+	tmux-terminal-popup "lazygit"
+}
+
 map global -docstring "search all files in workspace" user f :search-all<ret>
 map global -docstring "open file picker" user p :fzf<ret>
 map global -docstring "open file browser" user b :nnn<ret>
+map global -docstring "copy main selection to clipboard" user y :copy-selection-to-clipboard<ret>
 map global normal <c-h> ":enter-user-mode lsp<ret>"
+map global -docstring "open version control" user v :version-control<ret>
+
