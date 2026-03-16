@@ -5,15 +5,12 @@ file="${1:?missing file path}"
 line="${2:-}"
 split_direction="${3:-}"
 
-session="${KAKOUNE_SESSION:-}"
-client="${KAKOUNE_CLIENT:-}"
+session="${KAK_SESSION:-}"
+client="${KAK_CLIENT:-}"
 origin_pane="${KAK_TMUX_ORIGIN_PANE:-}"
-origin_path="${KAK_TMUX_ORIGIN_PATH:-$PWD}"
 
 close_popup() {
-  if [[ -n "${TMUX_PANE:-}" ]]; then
-    tmux kill-pane -t "$TMUX_PANE" >/dev/null 2>&1 || true
-  fi
+  tmux display-popup -C >/dev/null 2>&1 || true
 }
 
 open_in_existing_client() {
@@ -61,7 +58,6 @@ open_in_new_split() {
   tmux split-window \
     "$tmux_flag" \
     -t "$origin_pane" \
-    -c "$origin_path" \
     "$cmd"
 }
 
@@ -92,3 +88,4 @@ fi
 
 # Plain terminal fallback
 fallback_editor
+

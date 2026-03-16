@@ -71,7 +71,7 @@ tmux-terminal-popup <program> [<arguments>]: create a new terminal as a tmux pan
 The pane will open in a popup
 The program passed as argument will be executed in the new terminal' \
 %{
-    tmux-terminal-impl 'display-popup -E -w 75% -h 80% -d #{pane_current_path}' zsh -c "KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %arg{@}"
+    tmux-terminal-impl 'display-popup -E -w 75% -h 80% -d #{pane_current_path}' zsh -c "env KAK_SESSION=%val{session} KAK_CLIENT=%val{client} %arg{@}"
 }
 complete-command tmux-terminal-popup shell
 
@@ -104,15 +104,7 @@ define-command copy-selection-to-clipboard -docstring "Copies the current select
 }}
 
 define-command version-control -docstring "Open version control system in a popup" %{
-  evaluate-commands %sh{
-    tmux display-popup -E -d "$PWD" \
-      "env \
-        KAKOUNE_SESSION='$kak_session' \
-        KAKOUNE_CLIENT='$kak_client' \
-        KAK_TMUX_ORIGIN_PANE='${TMUX_PANE}' \
-        KAK_TMUX_ORIGIN_PATH='$PWD' \
-        lazygit"
-  }
+  tmux-terminal-popup "KAK_TMUX_ORIGIN_PANE=%sh{ tmux display-message -p '#{pane_id}' }" lazygit
 }
 
 map global -docstring "search all files in workspace" user f :search-all<ret>
@@ -121,4 +113,5 @@ map global -docstring "open file browser" user b :nnn<ret>
 map global -docstring "copy main selection to clipboard" user y :copy-selection-to-clipboard<ret>
 map global normal <c-h> ":enter-user-mode lsp<ret>"
 map global -docstring "open version control" user v :version-control<ret>
+
 

@@ -124,6 +124,7 @@
     if [[ ! -o interactive ]] && [[ ! -o login ]]; then
       eval "$(${pkgs.direnv}/bin/direnv export zsh)"
     fi
+    export XDG_CONFIG_HOME=$HOME/.config
     '';
 
     siteFunctions = {

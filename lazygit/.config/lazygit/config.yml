@@ -1,6 +1,6 @@
 os:
-  edit: '~/.local/bin/lazygit-kak-open {{filename}}'
-  editAtLine: '~/.local/bin/lazygit-kak-open {{filename}} {{line}}'
+  edit: 'lazygit-edit {{filename}}'
+  editAtLine: 'lazygit-edit {{filename}} {{line}}'
 
 customCommands:
   - key: 'K'
@@ -17,5 +17,9 @@ customCommands:
           - name: 'horizontal'
             description: 'Create a top/bottom tmux split'
             value: 'v'
-    command: '~/.local/bin/lazygit-kak-open {{.SelectedFile.Name | quote}} "" {{.Form.SplitDirection}}'
+    command: 'lazygit-edit {{.SelectedFile.Name | quote}} "" {{.Form.SplitDirection}}'
     output: terminal
+gui:
+  nerdFontsVersion: '3'
+  showFileIcons: true
+
