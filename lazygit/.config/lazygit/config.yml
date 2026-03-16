@@ -1,0 +1,21 @@
+os:
+  edit: '~/.local/bin/lazygit-kak-open {{filename}}'
+  editAtLine: '~/.local/bin/lazygit-kak-open {{filename}} {{line}}'
+
+customCommands:
+  - key: 'K'
+    context: 'files, commitFiles'
+    description: 'Open in Kakoune split'
+    prompts:
+      - type: 'menu'
+        title: 'Split direction'
+        key: 'SplitDirection'
+        options:
+          - name: 'vertical'
+            description: 'Create a left/right tmux split'
+            value: 'h'
+          - name: 'horizontal'
+            description: 'Create a top/bottom tmux split'
+            value: 'v'
+    command: '~/.local/bin/lazygit-kak-open {{.SelectedFile.Name | quote}} "" {{.Form.SplitDirection}}'
+    output: terminal

@@ -29,6 +29,7 @@
     tailwindcss-language-server
     nerd-fonts.fira-code
     (writeShellScriptBin "fzf-preview" (builtins.readFile ./scripts/fzf-preview))
+    (writeShellScriptBin "lazygit-edit" (builtins.readFile ./scripts/lazygit-edit))
     wezterm
     _1password-gui
     alt-tab-macos

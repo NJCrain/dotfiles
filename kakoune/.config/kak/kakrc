@@ -4,6 +4,7 @@ lsp-enable
 
 eval %sh{ kak-tree-sitter -dks --init $kak_session }
 
+
 colorscheme night-owl-ts
 set-option global tabstop 2
 set-option global indentwidth 2
@@ -21,6 +22,9 @@ hook global WinSetOption filetype=(?:javascript|typescript) %{
 	}}
 }
 
+hook -once global WinSetOption filetype=(javascript|typescript|jsx|tsx) %{
+    nop %sh{ ESLINT_D_PPID=$kak_session eslint_d start }
+}
 
 hook global BufSetOption filetype=(?:javascript|typescript) %{
     set-option buffer lsp_servers %{
@@ -100,7 +104,15 @@ define-command copy-selection-to-clipboard -docstring "Copies the current select
 }}
 
 define-command version-control -docstring "Open version control system in a popup" %{
-	tmux-terminal-popup "lazygit"
+  evaluate-commands %sh{
+    tmux display-popup -E -d "$PWD" \
+      "env \
+        KAKOUNE_SESSION='$kak_session' \
+        KAKOUNE_CLIENT='$kak_client' \
+        KAK_TMUX_ORIGIN_PANE='${TMUX_PANE}' \
+        KAK_TMUX_ORIGIN_PATH='$PWD' \
+        lazygit"
+  }
 }
 
 map global -docstring "search all files in workspace" user f :search-all<ret>

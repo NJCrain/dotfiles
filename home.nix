@@ -99,12 +99,6 @@
     enableZshIntegration = true;
   };
 
-  home.activation = {
-    stowKakoune = lib.hm.dag.entryAfter ["writeBoundary" "installPackages"] ''
-       run stow -t $HOME $HOME/dotfiles/kakoune
-    '';
-  };
-
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 }

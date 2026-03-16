@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+file="${1:?missing file path}"
+line="${2:-}"
+split_direction="${3:-}"
+
+session="${KAKOUNE_SESSION:-}"
+client="${KAKOUNE_CLIENT:-}"
+origin_pane="${KAK_TMUX_ORIGIN_PANE:-}"
+origin_path="${KAK_TMUX_ORIGIN_PATH:-$PWD}"
+
+close_popup() {
+  if [[ -n "${TMUX_PANE:-}" ]]; then
+    tmux kill-pane -t "$TMUX_PANE" >/dev/null 2>&1 || true
+  fi
+}
+
+open_in_existing_client() {
+  if [[ -z "$session" || -z "$client" ]]; then
+    return 1
+  fi
+
+  if [[ -n "$line" ]]; then
+    printf 'evaluate-commands -client %s %%{ edit -existing -- %s %s }\n' \
+      "$client" "$file" "$line" | kak -p "$session"
+  else
+    printf 'evaluate-commands -client %s %%{ edit -existing -- %s }\n' \
+      "$client" "$file" | kak -p "$session"
+  fi
+}
+
+open_in_new_split() {
+  if [[ -z "$session" || -z "$origin_pane" ]]; then
+    return 1
+  fi
+
+  local tmux_flag
+  case "$split_direction" in
+    h|horizontal|vertical)
+      # tmux -h creates a left/right split
+      tmux_flag="-h"
+      ;;
+    v|vertical|horizontal)
+      # tmux -v creates a top/bottom split
+      tmux_flag="-v"
+      ;;
+    *)
+      echo "Invalid split direction: $split_direction" >&2
+      exit 1
+      ;;
+  esac
+
+  local cmd
+  if [[ -n "$line" ]]; then
+    cmd=$(printf 'kak -c %q %q +%q' "$session" "$file" "$line")
+  else
+    cmd=$(printf 'kak -c %q %q' "$session" "$file")
+  fi
+
+  tmux split-window \
+    "$tmux_flag" \
+    -t "$origin_pane" \
+    -c "$origin_path" \
+    "$cmd"
+}
+
+fallback_editor() {
+  local editor="${EDITOR:-kak}"
+
+  if [[ -n "$line" ]]; then
+    exec "$editor" "+$line" -- "$file"
+  else
+    exec "$editor" -- "$file"
+  fi
+}
+
+# Kakoune-aware path
+if [[ -n "$session" ]]; then
+  if [[ -n "$split_direction" ]]; then
+    open_in_new_split
+    close_popup
+    exit 0
+  fi
+
+  if [[ -n "$client" ]]; then
+    open_in_existing_client
+    close_popup
+    exit 0
+  fi
+fi
+
+# Plain terminal fallback
+fallback_editor
