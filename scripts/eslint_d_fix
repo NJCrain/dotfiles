@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Walk up from the file to find the nearest tsconfig.json
+dir=$(dirname "$1")
+while [ "$dir" != "/" ]; do
+  if [ -f "$dir/tsconfig.json" ]; then
+    break
+  fi
+  dir=$(dirname "$dir")
+done
+cd "$dir" && exec eslint_d --fix-to-stdout --stdin --stdin-filename "$1"

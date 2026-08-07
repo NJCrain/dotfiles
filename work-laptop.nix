@@ -1,6 +1,9 @@
 { config, pkgs, lib, ... }:
-
-{
+let
+  emacsPkgs = pkgs.emacsPackagesFor pkgs.emacs;  # or emacs29, emacsUnstable, etc.
+  treesitGrammars = emacsPkgs.treesit-grammars.with-all-grammars;
+  myEmacs = emacsPkgs.emacsWithPackages (epkgs: with epkgs; [ treesitGrammars vterm ]);
+in {
   home.username = "nick";
   home.homeDirectory = "/Users/nick";
 
@@ -20,6 +23,7 @@
     autojump
     ripgrep
     bat
+    coreutils
     kakoune
     kakoune-lsp
     (pkgs.callPackage (import ./custom-packages/kak-tree-sitter/kak-tree-sitter.nix) {})
@@ -28,14 +32,16 @@
     typescript-language-server
     tailwindcss-language-server
     nerd-fonts.fira-code
+    nerd-fonts.symbols-only
     (writeShellScriptBin "fzf-preview" (builtins.readFile ./scripts/fzf-preview))
     (writeShellScriptBin "lazygit-edit" (builtins.readFile ./scripts/lazygit-edit))
-    wezterm
+    (writeShellScriptBin "yarn" (builtins.readFile ./scripts/yarn))
+    (writeShellScriptBin "eslint_d-fix" (builtins.readFile ./scripts/eslint_d_fix))
     _1password-gui
     alt-tab-macos
     dbeaver-bin
-    karabiner-elements
     slack
+    karabiner-elements
     postman
     raycast
     wireguard-tools
@@ -44,19 +50,16 @@
     tree
     fswatch
     codex
-    graphite-cli
     firefox
     eslint_d
     mosh
-    codex
     claude-code
+    myEmacs
+    rassumfrassum
+    nodejs
+    spotube
+    yt-dlp
   ];
-
-  programs.direnv = {
-    enable = true;
-    enableZshIntegration = true;
-    silent = true;
-  };
 
   programs.fd = {
 		enable = true;
@@ -107,8 +110,12 @@
       ];
     };
 
+    localVariables = {
+			PATH = "$HOME/.config/emacs/bin:$PATH";
+    };
+
     shellAliases = {
-      dev-connect = "autossh -M 0 -f server -L 3000:localhost:3000 -L 8080:localhost:8080 -L 4000:localhost:4000 -L 8233:localhost:8233 -L 8000:localhost:8000 -N";
+      dev-connect = "autossh -M 0 -f server -L 3000:localhost:3000 -L 8080:localhost:8080 -L 4000:localhost:4000 -L 8233:localhost:8233 -L 8000:localhost:8000 -L 5435:localhost:5435 -N";
       nix-shell = "nix-shell --run $SHELL";
     };
 
@@ -125,6 +132,10 @@
       eval "$(${pkgs.direnv}/bin/direnv export zsh)"
     fi
     export XDG_CONFIG_HOME=$HOME/.config
+    '';
+
+    initContent = ''
+			eval "$(lorri hook zsh)"
     '';
 
     siteFunctions = {
@@ -163,10 +174,6 @@
     enable = true;
   };
 
-  programs.vscode = {
-    enable = true;
-  };
-
   programs.git = {
 		enable = true;
 		settings = {
@@ -185,6 +192,10 @@
 
 			};
 		};
+  };
+
+  programs.gh = {
+		enable = true;
   };
 
   programs.lazygit = {

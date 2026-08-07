@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# If direnv has already loaded the environment, just find the real npx and run it
+if [[ -n "$DIRENV_DIR" ]]; then
+  real_npx=$(PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$(dirname "$(readlink -f "$0")")" | tr '\n' ':') which npx 2>/dev/null)
+  if [[ -z "$real_npx" ]]; then
+    echo "npx: not found in direnv environment" >&2
+    exit 1
+  fi
+  exec "$real_npx" "$@"
+fi
+
+if command -v direnv &>/dev/null; then
+  exec direnv exec . npx "$@"
+fi
+
+echo "npx: not found and direnv is not available" >&2
+exit 1

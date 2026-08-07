@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# If direnv has already loaded the environment, just find the real yarn and run it
+if [[ -n "$DIRENV_DIR" ]]; then
+  # Find yarn that isn't this script
+  script_dir=$(cd "$(dirname "$0")" && pwd)
+  resolved_dir=$(dirname "$(readlink -f "$0")")
+  real_yarn=$(PATH=$(echo "$PATH" | tr ':' '\n' | grep -v -e "$script_dir" -e "$resolved_dir" | tr '\n' ':') which yarn 2>/dev/null)
+  if [[ -n "$real_yarn" ]]; then
+    exec "$real_yarn" "$@"
+  fi
+  # DIRENV_DIR is set but env is incomplete (e.g. stale lorri cache) — fall through
+fi
+
+# Not in a direnv environment — try to exec via direnv using the current directory
+if command -v direnv &>/dev/null; then
+  exec direnv exec . yarn "$@"
+fi
+
+echo "yarn: not found and direnv is not available" >&2
+exit 1
